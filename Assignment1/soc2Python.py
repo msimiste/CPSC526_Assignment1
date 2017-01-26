@@ -19,19 +19,22 @@ s.bind((host, port))        # Bind to the port
 s.listen(5)                 # Now wait for client connection.
 
 
-c, addr = s.accept()     # Establish connection with client.
-c.send(bytearray(PASS_MSG,"utf-8"))
-data = c.recv(BUFFER_SIZE, 0)
-pInfo = "".join(map(chr,data))     
-while(pInfo.upper().strip() != PW.upper()):
-    c.send(bytearray(PASS_MSG,"utf-8"))
-    data = c.recv(BUFFER_SIZE, 0)
-    pInfo = "".join(map(chr,data))
-    print(pInfo.upper() == PW.upper())
+
     
 while True:
    #c, addr = s.accept()     # Establish connection with client.
-   print ('Got connection from', addr)   
+   if(not(CONNECT)):         
+       c, addr = s.accept()     # Establish connection with client.
+       print ('Got connection from', addr)
+       c.send(bytearray(PASS_MSG,"utf-8"))
+       data = c.recv(BUFFER_SIZE, 0)
+       pInfo = "".join(map(chr,data))
+            
+       while(pInfo.strip() != PW):
+           c.send(bytearray(PASS_MSG,"utf-8"))
+           data = c.recv(BUFFER_SIZE, 0)
+           pInfo = "".join(map(chr,data))
+           print(pInfo.upper() == PW.upper())
    while 1:
        try:
            #print("line17") for debug purposes
