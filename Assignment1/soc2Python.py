@@ -6,65 +6,80 @@ import shlex
 import os
 import sys
 
+
+
+
+def helpList(l):
+	build = ""
+	for line in l:
+		build += line
+	return build
+	
 BUFFER_SIZE = 4096
 PASS_MSG = "Password:"
 PW = "CPSC526"
+hList = ["\tCommands\n","cat <file> \t display a file\n", "cd \t\t change current working directory\n", "help \t\t shows a list of commands\n", "ls [agrs] \t list current directory contents\n","off \t\t shuts down the program\n", "who \t\t lists the users who are currently logged in\n",  "ps \t\t shows the current running processes\n", "pwd \t\t returns the current working directory\n", "who \t\t lists the users currently logged in\n", "***NOTE*** \tThis program will execute all linux commands"]
 CONNECT = False
 s = socket.socket()         # Create a socket object
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-host = "localhost" # Get local machine name
-port = 9999           # Reserve a port for your service.
-s.bind((host, port))        # Bind to the port
-
-s.listen(5)                 # Now wait for client connection.
-
-
-
     
 while True:
-   #c, addr = s.accept()     # Establish connection with client.
-   if(not(CONNECT)):         
+   
+   if(not(CONNECT)):
+       s = socket.socket()         # Create a socket object
+       s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+       host = "172.19.1.165" # Get local machine name
+       port = 9999           # Reserve a port for your service.
+       s.bind((host, port))        # Bind to the port
+       
+       s.listen(5)                 # Now wait for client connection.         
        c, addr = s.accept()     # Establish connection with client.
        print ('Got connection from', addr)
-       c.send(bytearray(PASS_MSG,"utf-8"))
+       c.send(bytearray(PASS_MSG,"ascii"))
        data = c.recv(BUFFER_SIZE, 0)
-       pInfo = "".join(map(chr,data))
+       pInfo = data.decode("ascii")
+       
             
        while(pInfo.strip() != PW):
-           c.send(bytearray(PASS_MSG,"utf-8"))
+           c.send(bytearray(PASS_MSG,"ascii"))
            data = c.recv(BUFFER_SIZE, 0)
-           pInfo = "".join(map(chr,data))
-           print(pInfo.upper() == PW.upper())
-   while 1:
+           pInfo = data.decode("ascii")           
+       CONNECT = True
+       c.send(bytearray('Welcome Back\n', "ascii"))    
+   while CONNECT:
        try:
            #print("line17") for debug purposes
            data = c.recv(BUFFER_SIZE, 0)
            while (len(data) == BUFFER_SIZE):
                 data += c.recv(BUFFER_SIZE, 0)
-           data = data.decode("utf-8")           
+           data = data.decode("ascii")           
        except:
            break
        data1 = shlex.split(data)
-       if(data1[0].strip() == "off"):
-            c.send(bytearray('GoodBye',"ascii"))
-            #sys.exit()
-            c.close()
+       if(len(data1) == 0):
+			CONNECT = False
+       elif(data1[0].strip() == "off"):
+            c.send(bytearray('GoodBye\n',"ascii"))
+            sys.exit()            
        elif(data1[0] == "cd"):
             data1 = ''.join(str(x) for x in data1[1:])
             data1 = data1.replace(" ","")
-            data1 = data1.replace("\n","")
-            os.chdir(data1)       
-       elif(data1[0] == "help"):
-           res = subprocess.check_output(data1,stderr=subprocess.STDOUT, shell=True)
-           #print("".join(map(chr,res)))
-           c.send(res)
+            data1 = data1.replace("\n","")            
+            try:
+                os.chdir(data1)
+            except Exception, e:
+                c.send(bytearray(str(e)+'\n',"ascii"))      
+       elif(data1[0] == "help"):          
+           c.send(bytearray(str(helpList(hList))+'\n',"ascii"))
        else:
            #print("line 58: ") for dubug purposes
            #print(data1) for debug purposes
            try:
                 res = subprocess.check_output(data1,stderr=subprocess.STDOUT)
                 c.send(res)
-           except:
-               #err = (bytearray("Command: " + "".join(map(chr,res)) + "Not Supported"),"utf-8")
-               c.send(bytearray("\nCommand: \"" + data.strip() + "\" not supported\n","utf-8"))              
+           except Exception, e:
+			   c.send(bytearray(str(e)+'\n', "ascii"))                             
+   CONNECT = False
 c.close()                # Close the connection
+
+
