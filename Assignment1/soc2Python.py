@@ -6,9 +6,6 @@ import shlex
 import os
 import sys
 
-
-
-
 def helpList(l):
 	build = ""
 	for line in l:
@@ -70,7 +67,9 @@ while True:
             except Exception, e:
                 c.send(bytearray(str(e)+'\n',"ascii"))      
        elif(data1[0] == "help"):          
-           c.send(bytearray(str(helpList(hList))+'\n',"ascii"))
+           #c.send(bytearray(str(helpList(hList))+'\n',"ascii"))
+           c.send(bytearray(''.join(str(x) for x in hList)))
+       
        else:
            #print("line 58: ") for dubug purposes
            #print(data1) for debug purposes
